@@ -1,0 +1,76 @@
+-- Delete items if they already exist to avoid insertion errors
+DELETE FROM `item_template` WHERE `entry` IN (900001, 900002);
+
+-- Step 1: Create the Morphing Flask (900001)
+INSERT INTO `item_template` 
+SELECT 900001, class, subclass, SoundOverrideSubclass,
+    'Morphing Flask', displayid, 4, 64, FlagsExtra,
+    BuyCount, BuyPrice, SellPrice,
+    InventoryType, AllowableClass, AllowableRace,
+    ItemLevel, RequiredLevel, RequiredSkill, RequiredSkillRank,
+    requiredspell, requiredhonorrank, RequiredCityRank,
+    RequiredReputationFaction, RequiredReputationRank,
+    0, 1, ContainerSlots, -- maxcount = 0 (removes Unique) and stack size set to 1
+    stat_type1, stat_value1, stat_type2, stat_value2,
+    stat_type3, stat_value3, stat_type4, stat_value4,
+    stat_type5, stat_value5, stat_type6, stat_value6,
+    stat_type7, stat_value7, stat_type8, stat_value8,
+    stat_type9, stat_value9, stat_type10, stat_value10,
+    ScalingStatDistribution, ScalingStatValue,
+    dmg_min1, dmg_max1, dmg_type1, dmg_min2, dmg_max2, dmg_type2,
+    armor, holy_res, fire_res, nature_res, frost_res, shadow_res, arcane_res,
+    delay, ammo_type, RangedModRange,
+    -- Spell 1 set to Dummy Spell ID 483 (clickable, no text, no combat required)
+    483, 0, -1, 0, -1, 0, -1,
+    -- Cancel spells 2-5 to remove old text/effects
+    0, 0, 0, 0, -1, 0, -1,
+    0, 0, 0, 0, -1, 0, -1,
+    0, 0, 0, 0, -1, 0, -1,
+    0, 0, 0, 0, -1, 0, -1,
+    1,
+    'Click to transform for 30 minutes. Use the Flask Recharger to refill charges.',
+    PageText, LanguageID, PageMaterial, startquest, lockid, Material, sheath,
+    RandomProperty, RandomSuffix, block, itemset, MaxDurability,
+    area, Map, BagFamily, TotemCategory,
+    socketColor_1, socketContent_1, socketColor_2, socketContent_2, socketColor_3, socketContent_3,
+    socketBonus, GemProperties, RequiredDisenchantSkill, ArmorDamageModifier,
+    duration, ItemLimitCategory, HolidayId,
+    '', DisenchantID, FoodType, minMoneyLoot, maxMoneyLoot, flagsCustom, 12340
+FROM `item_template` WHERE `entry` = 43499;
+
+-- Step 2: Create the Flask Recharger (900002)
+INSERT INTO `item_template` 
+SELECT 900002, class, subclass, SoundOverrideSubclass,
+    'Flask Recharger', displayid, 3, 64, FlagsExtra,
+    BuyCount, BuyPrice, SellPrice,
+    InventoryType, AllowableClass, AllowableRace,
+    ItemLevel, RequiredLevel, RequiredSkill, RequiredSkillRank,
+    requiredspell, requiredhonorrank, RequiredCityRank,
+    RequiredReputationFaction, RequiredReputationRank,
+    0, 10, ContainerSlots, -- maxcount = 0 (removes Unique) and stack size set to 10
+    stat_type1, stat_value1, stat_type2, stat_value2,
+    stat_type3, stat_value3, stat_type4, stat_value4,
+    stat_type5, stat_value5, stat_type6, stat_value6,
+    stat_type7, stat_value7, stat_type8, stat_value8,
+    stat_type9, stat_value9, stat_type10, stat_value10,
+    ScalingStatDistribution, ScalingStatValue,
+    dmg_min1, dmg_max1, dmg_type1, dmg_min2, dmg_max2, dmg_type2,
+    armor, holy_res, fire_res, nature_res, frost_res, shadow_res, arcane_res,
+    delay, ammo_type, RangedModRange,
+    -- Spell 1 set to Dummy Spell ID 483
+    483, 0, -1, 0, -1, 0, -1,
+    -- Cancel spells 2-5
+    0, 0, 0, 0, -1, 0, -1,
+    0, 0, 0, 0, -1, 0, -1,
+    0, 0, 0, 0, -1, 0, -1,
+    0, 0, 0, 0, -1, 0, -1,
+    1,
+    'Use to recharge the Morphing Flask with 3x Infinite Dust per charge.',
+    PageText, LanguageID, PageMaterial, startquest, lockid, Material, sheath,
+    RandomProperty, RandomSuffix, block, itemset, MaxDurability,
+    area, Map, BagFamily, TotemCategory,
+    socketColor_1, socketContent_1, socketColor_2, socketContent_2, socketColor_3, socketContent_3,
+    socketBonus, GemProperties, RequiredDisenchantSkill, ArmorDamageModifier,
+    duration, ItemLimitCategory, HolidayId,
+    '', DisenchantID, FoodType, minMoneyLoot, maxMoneyLoot, flagsCustom, 12340
+FROM `item_template` WHERE `entry` = 20413;
