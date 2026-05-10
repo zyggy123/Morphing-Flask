@@ -1,4 +1,6 @@
-
+<p align="center">
+  <img src="https://github.com/zyggy123/Morphing-Flask/blob/main/icon.png" width="200" />
+</p>
 
 ```markdown
 # 🧪 Eluna Morphing Flask System
