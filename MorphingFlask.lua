@@ -3,37 +3,36 @@
 -- With Visual Buff, Right-Click Cancel & RANDOM MORPHS
 -- ============================================
 
+-- Configuration
 local FLASK_ITEM       = 900001
 local RECHARGER_ITEM   = 900002
-local REAGENT_ITEM     = 34054   
-local REAGENT_COST     = 3       
+local REAGENT_ITEM     = 34054   -- Item required to recharge (Infinite Dust)
+local REAGENT_COST     = 3       -- Dust needed per charge
 local MAX_CHARGES      = 5       
-local MORPH_DURATION   = 1800    -- 30 minutes in seconds
-local BUFF_SPELL_ID    = 16739   -- "Disguise" (Foarte stabil, nu dispare singur)
+local MORPH_DURATION   = 1800    -- Duration in seconds (30 min)
+local BUFF_SPELL_ID    = 16739   
 
--- ============================================
--- ADD YOUR DISPLAY IDs HERE
--- ============================================
+-- Random Appearances List
 local MORPH_DISPLAY_IDS = {
-    29229, -- Iron Dwarf (original)
+    29229, -- Iron Dwarf
     20318, -- Murloc
     21228, -- Fel Orc
     19724, -- Blood Elf
     22917, -- Skeleton
-    19692, -- Custom addition
-    2676,  -- Custom addition
-    3887   -- Custom addition
+    19692, -- Custom NPC 1
+    2676,  -- Custom NPC 2
+    3887   -- Custom NPC 3
 }
 
+-- RAM storage
 local playerCharges  = {}
 local playerTimers   = {}
 local activeMorphs   = {} 
 
+-- Helper Functions
 local function GetCharges(player)
     local guid = player:GetGUIDLow()
-    if playerCharges[guid] == nil then
-        playerCharges[guid] = 0
-    end
+    if playerCharges[guid] == nil then playerCharges[guid] = 0 end
     return playerCharges[guid]
 end
 
@@ -42,10 +41,7 @@ local function SetCharges(player, charges)
     playerCharges[guid] = charges
 end
 
--- ============================================
--- Timer Monitor (Buff Observer Loop)
--- ============================================
-
+-- Timer Observer
 local function StopMorphTimer(guid)
     if playerTimers[guid] then
         RemoveEventById(playerTimers[guid])
@@ -55,7 +51,6 @@ end
 
 local function StartMorphTimer(player)
     local guid = player:GetGUIDLow()
-
     StopMorphTimer(guid)
 
     playerTimers[guid] = CreateLuaEvent(function(eventId, delay, repeats)
@@ -65,7 +60,6 @@ local function StartMorphTimer(player)
                 p:DeMorph() 
                 activeMorphs[guid] = nil 
                 p:SendBroadcastMessage("|cffff9900[Morphing Flask]|r Your transformation has ended.")
-                
                 RemoveEventById(eventId)
                 playerTimers[guid] = nil
             end
@@ -76,15 +70,11 @@ local function StartMorphTimer(player)
     end, 500, 0)
 end
 
--- ============================================
--- FLASK (900001) - Activate / Deactivate
--- ============================================
-
+-- Item: Morphing Flask
 local function OnFlaskUse(event, player, item, target)
     local guid    = player:GetGUIDLow()
     local charges = GetCharges(player)
 
-    -- If the player already has the buff, remove it. 
     if player:HasAura(BUFF_SPELL_ID) then
         player:RemoveAura(BUFF_SPELL_ID)
         activeMorphs[guid] = nil
@@ -100,13 +90,9 @@ local function OnFlaskUse(event, player, item, target)
 
     local randomIndex = math.random(1, #MORPH_DISPLAY_IDS)
     local chosenMorph = MORPH_DISPLAY_IDS[randomIndex]
-
     activeMorphs[guid] = chosenMorph
 
-    -- Apply the visual buff and capture it directly
     local aura = player:AddAura(BUFF_SPELL_ID, player)
-    
-    -- Fortam atat durata curenta, cat si durata maxima
     if aura then
         aura:SetMaxDuration(MORPH_DURATION * 1000)
         aura:SetDuration(MORPH_DURATION * 1000)
@@ -117,28 +103,23 @@ local function OnFlaskUse(event, player, item, target)
     SetCharges(player, charges - 1)
 
     player:SendBroadcastMessage("|cff00ff00[Morphing Flask]|r Transformation activated! (30 minutes)")
-    player:SendBroadcastMessage("|cff00ff00[Morphing Flask]|r Charges remaining: |cffffd700" .. (charges - 1) .. "/" .. MAX_CHARGES .. "|r")
+    player:SendBroadcastMessage("|cff00ff00[Morphing Flask]|r Charges: |cffffd700" .. (charges - 1) .. "/" .. MAX_CHARGES .. "|r")
 
     return false
 end
 
--- ============================================
--- RECHARGER (900002) - Recharge with Infinite Dust
--- ============================================
-
+-- Item: Flask Recharger
 local function OnRechargerUse(event, player, item, target)
     local charges   = GetCharges(player)
     local dustCount = player:GetItemCount(REAGENT_ITEM, false)
 
     if charges >= MAX_CHARGES then
         player:SendBroadcastMessage("|cffff9900[Flask Recharger]|r The flask is already full!")
-        player:SendBroadcastMessage("|cffff9900[Flask Recharger]|r Charges: |cffffd700" .. MAX_CHARGES .. "/" .. MAX_CHARGES .. "|r")
         return false
     end
 
     if dustCount < REAGENT_COST then
-        player:SendBroadcastMessage("|cffff0000[Flask Recharger]|r You don't have enough Infinite Dust!")
-        player:SendBroadcastMessage("|cffff0000[Flask Recharger]|r You have |cffffd700" .. dustCount .. "|r, you need |cffffd700" .. REAGENT_COST .. "x|r per charge.")
+        player:SendBroadcastMessage("|cffff0000[Flask Recharger]|r You need at least " .. REAGENT_COST .. "x Infinite Dust.")
         return false
     end
 
@@ -150,38 +131,24 @@ local function OnRechargerUse(event, player, item, target)
     player:RemoveItem(REAGENT_ITEM, dustToConsume)
     SetCharges(player, charges + toAdd)
 
-    player:SendBroadcastMessage("|cff00ff00[Flask Recharger]|r Recharged successfully!")
-    player:SendBroadcastMessage("|cff00ff00[Flask Recharger]|r |cffffd700+" .. toAdd .. " charges|r using |cff00ccff" .. dustToConsume .. "x Infinite Dust|r.")
-    player:SendBroadcastMessage("|cff00ccff[Flask Recharger]|r Charges now: |cffffd700" .. (charges + toAdd) .. "/" .. MAX_CHARGES .. "|r")
-
+    player:SendBroadcastMessage("|cff00ff00[Flask Recharger]|r Recharged! |cffffd700+" .. toAdd .. " charges|r.")
     return false
 end
 
--- ============================================
--- Login / Logout Events
--- ============================================
-
-local function OnPlayerLogin(event, player)
-    local guid = player:GetGUIDLow()
-    
-    if player:HasAura(BUFF_SPELL_ID) then
-        if not activeMorphs[guid] then
-            activeMorphs[guid] = MORPH_DISPLAY_IDS[math.random(1, #MORPH_DISPLAY_IDS)]
-        end
-        
-        player:SetDisplayId(activeMorphs[guid])
-        StartMorphTimer(player)
-    end
-end
-
-local function OnPlayerLogout(event, player)
-    local guid = player:GetGUIDLow()
-    StopMorphTimer(guid)
-    playerCharges[guid] = nil
-end
-
+-- Events
 RegisterItemEvent(FLASK_ITEM,     2, OnFlaskUse)
 RegisterItemEvent(RECHARGER_ITEM, 2, OnRechargerUse)
 
-RegisterPlayerEvent(3, OnPlayerLogin)  
-RegisterPlayerEvent(4, OnPlayerLogout)
+RegisterPlayerEvent(3, function(event, player) -- Login
+    local guid = player:GetGUIDLow()
+    if player:HasAura(BUFF_SPELL_ID) then
+        if not activeMorphs[guid] then activeMorphs[guid] = MORPH_DISPLAY_IDS[math.random(1, #MORPH_DISPLAY_IDS)] end
+        player:SetDisplayId(activeMorphs[guid])
+        StartMorphTimer(player)
+    end
+end)
+
+RegisterPlayerEvent(4, function(event, player) -- Logout
+    StopMorphTimer(player:GetGUIDLow())
+    playerCharges[player:GetGUIDLow()] = nil
+end)
